@@ -180,7 +180,7 @@
       <div class="shop-grid" id="shop-grid"></div>
     </section>
 
-    <section class="card"><h2 class="section-title">Іграшки котика <small>обери улюблену</small></h2><p class="toy-help">Куплені іграшки підвищують щастя та витрачають енергію. Нова гра — кожні 20 секунд.</p><div id="toys" class="shop-grid"></div><p id="toy-status" aria-live="polite"></p></section>
+    <section class="card"><h2 class="section-title">Іграшки котика <small>обери улюблену</small></h2><p class="toy-help">Кожна гра з іграшкою витрачає 5 енергії та додає щастя. Для гри потрібно щонайменше 5 енергії. Нова гра — кожні 20 секунд.</p><div id="toys" class="shop-grid"></div><p id="toy-status" aria-live="polite"></p></section>
     <section class="card"><h2 class="section-title">Гардероб <small>твій власний стиль</small></h2><div id="wardrobe" class="shop-grid"></div></section>
     <section class="card"><h2 class="section-title">Ігрова кімната <small>грай і збирай монети</small></h2><div class="game-menu"><button class="primary" data-game="catch">Лови сердечка</button><button class="primary" data-game="memory">Знайди пари</button><button class="primary" data-game="guess">Вгадай число</button><button class="primary" data-game="sequence">Повтори мелодію</button></div></section>
     <section class="card gift">
@@ -246,7 +246,7 @@
     {id:"room-cloud",name:"Хмарний палац",emoji:"☁️",price:65,type:"room"},
     {id:"room-birthday",name:"Святкова кімната",emoji:"🎂",price:70,type:"room"}
   );
-  const toyEffects={ball:{happy:20,energy:9,text:"Ловлю клубочок! Мур, як весело!"},fish:{happy:24,energy:10,text:"Рибка вислизає з лапок! Ще раз!"},unicorn:{happy:28,energy:6,text:"Обіймаю єдинорога. Казка починається!"},mouse:{happy:26,energy:12,text:"Спіймав мишку! Я справжній мисливець!"},bubbles:{happy:22,energy:7,text:"Лоп! Бульбашки такі чарівні!"}};
+  const toyEffects={ball:{happy:20,energy:5,text:"Ловлю клубочок! Мур, як весело!"},fish:{happy:24,energy:5,text:"Рибка вислизає з лапок! Ще раз!"},unicorn:{happy:28,energy:5,text:"Обіймаю єдинорога. Казка починається!"},mouse:{happy:26,energy:5,text:"Спіймав мишку! Я справжній мисливець!"},bubbles:{happy:22,energy:5,text:"Лоп! Бульбашки такі чарівні!"}};
   const accessoryEmoji = {bow:"🎀", crown:"👑", flower:"🌸", glasses:"🤓"};
   if(TEST_MODE) items.forEach(item=>item.price=0);
   let state = loadState();
@@ -509,9 +509,10 @@
   function useToy(item){
     if(!state.owned.includes(item.id)||!toyEffects[item.id])return;
     if(state.sleepingUntil>Date.now())return showToast("Котик спить. Зачекай, поки прокинеться 🌙");
+    if(state.happiness>=100){const message="Котик уже награвся 💗";el("toy-status").textContent=message;return showToast(message);}
+    if(state.energy<5){const message="Котик заморився і хоче поспати 🌙";el("toy-status").textContent=message;return showToast(message);}
     if(state.toyReadyAt>Date.now())return showToast(`Наступна гра через ${Math.ceil((state.toyReadyAt-Date.now())/1000)} с`);
-    const effect=toyEffects[item.id];if(state.energy<effect.energy+5)return showToast("Для гри бракує енергії. Поклади котика спати 🌙");
-    if(state.happiness>=98)return showToast("Котик уже щасливий! Пограємо трохи пізніше 💗");
+    const effect=toyEffects[item.id];
     state.toy=item.id;state.toyReadyAt=Date.now()+20000;state.happiness=clamp(state.happiness+effect.happy);state.energy=clamp(state.energy-effect.energy);state.hunger=clamp(state.hunger-3);addXP(8);state.totalCare++;
     render();save();say(effect.text);el("toy-status").textContent=`${item.name}: +${effect.happy}% щастя, −${effect.energy}% енергії. Котик дякує тобі!`;
     el("active-toy").classList.remove("toy-playing");void el("active-toy").offsetWidth;el("active-toy").classList.add("toy-playing");
